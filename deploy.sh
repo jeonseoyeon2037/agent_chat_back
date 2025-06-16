@@ -2,16 +2,16 @@
 set -e  # 오류 발생시 스크립트 중단
 
 echo "deleting old app"
-sudo rm -rf /var/www/fastapi-chat_back
+sudo rm -rf /var/www/fastapi-dp-test
 
 echo "creating app folder"
-sudo mkdir -p /var/www/fastapi-chat_back 
+sudo mkdir -p /var/www/fastapi-dp-test 
 
 echo "moving files to app folder"
-sudo cp -r * /var/www/fastapi-chat_back/
+sudo cp -r * /var/www/fastapi-dp-test/
 
 # Navigate to the app directory and handle .env file
-cd /var/www/fastapi-chat_back/
+cd /var/www/fastapi-dp-test/
 echo "Setting up .env file..."
 if [ -f env ]; then
     sudo mv env .env
@@ -22,13 +22,13 @@ elif [ -f .env ]; then
     echo ".env file already exists"
 else
     # .env 파일 생성 (필요한 환경 변수 설정)
-    cat << 'EOF' > .env
+    cat << EOF > .env
 OPENAI_API_KEY=${OPENAI_API_KEY}
 TAVILY_API_KEY=${TAVILY_API_KEY}
-EOF # 환경 변수 설정
+EOF
     sudo chown ubuntu:ubuntu .env
     echo "New .env file created"
-fi # .env 파일 생성
+fi
 
 # .env 파일 확인
 echo "Checking .env file..."
@@ -92,17 +92,16 @@ sudo pkill uvicorn || true
 sudo systemctl stop nginx || true
 
 # 애플리케이션 디렉토리 권한 설정
-sudo chown -R ubuntu:ubuntu /var/www/fastapi-chat_back
+sudo chown -R ubuntu:ubuntu /var/www/fastapi-dp-test
 
 # 콘다 환경 생성 및 활성화
 echo "Creating and activating conda environment..."
-/home/ubuntu/miniconda/bin/conda create -y -n fastapi-env python=3.12 || true
+/home/ubuntu/miniconda/bin/conda create -y -n fastapi-env python=3.10 || true
 source /home/ubuntu/miniconda/bin/activate fastapi-env
 
 # 의존성 설치
 echo "Installing dependencies..."
 pip install -r requirements.txt
-
 
 # Nginx 설정 테스트 및 재시작
 echo "Testing and restarting Nginx..."
@@ -111,7 +110,7 @@ sudo systemctl restart nginx
 
 # 애플리케이션 시작
 echo "Starting FastAPI application..."
-cd /var/www/fastapi-chat_back
+cd /var/www/fastapi-dp-test
 nohup /home/ubuntu/miniconda/envs/fastapi-env/bin/uvicorn backend:app --host 0.0.0.0 --port 8000 --workers 3 > /var/log/fastapi/uvicorn.log 2>&1 &
 
 # 애플리케이션 시작 확인을 위한 대기
